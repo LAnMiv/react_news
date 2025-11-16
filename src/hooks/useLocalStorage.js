@@ -1,19 +1,18 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
+import cacheLocalStorage from "../helpers/cacheLocalStorage";
 
-export default function useLocalStorage (key="data-news", initialValue = []) {
-	const [value, setValue] = useState(() => {
-		try {
-			const stored = localStorage.getItem(key)
-			return stored !== null ? JSON.parse(stored) : initialValue
-		} catch (error) {
-			console.warn("Ошибка чтения localStorage:", error);
-			return initialValue
-		}
-	})
+export default function useLocalStorage(key, initialValue = []) {
+	const [value, setValue] = useState(() =>
+		cacheLocalStorage.getLocalStorage(key, initialValue)
+	);
 
 	useEffect(() => {
-		localStorage.setItem(key, JSON.stringify(value))
-	}, [key, value])
+		setValue(cacheLocalStorage.getLocalStorage(key, initialValue));
+	}, [key]);
 
-	return [value, setValue]
+	useEffect(() => {
+		cacheLocalStorage.setLocalStorage(key, value);
+	}, [key, value]);
+
+	return [value, setValue];
 }
