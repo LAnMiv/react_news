@@ -1,26 +1,35 @@
 import { useEffect, useState } from 'react';
 import NewsBanner from '../../components/NewsBanner/NewsBanner';
 import styles from './styles.module.css'
-import { getNews } from '../../api/apiNews';
+import { getCategories, getNews } from '../../api/apiNews';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import NewsList from '../../components/NewsList/NewsList';
 import Skeleton from '../../components/Skeleton/Skeleton';
 import Pagination from '../../components/Pagination/Pagination';
+import Categories from '../../components/Categories/Categories';
 
 const Main = () => {
-	const [currentPage, setCurrentPage] = useState(3);
-	const [news, setNews] = useLocalStorage(`news-data-page-${currentPage}`, []);
-	// const [news, setNews] = useState([]);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [selectedCategory, setSelectedCategory] = useState('All')
+	// const [news, setNews] = useLocalStorage(`news-data-page-${currentPage}`, []);
+	// const [categories, setCategories] = useLocalStorage(`categories-data`, []);
+	const [news, setNews] = useState([]);
+	const [categories, setCategories] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const totalPages = 10;
 	const pageSize = 10;
 
 	const controller = new AbortController();
 
-	const fetchNews = async (currentPage) => {
+	const fetchNews = async () => {
 		try {
 			setIsLoading(true)
-			const data = await getNews(controller.signal, currentPage, pageSize)
+			const data = await getNews(
+				controller.signal, {
+					page_number: currentPage,
+					page_size: pageSize,
+					category: selectedCategory === 'All' ? null : selectedCategory,
+				})
 			if (data.status !== 'ok') throw new Error('Ошибка загрузки данных с сервера')
 			const newsData = data.news;
 			setNews(newsData)
@@ -33,16 +42,39 @@ const Main = () => {
 		}
 	}
 
-	useEffect(() => {
-
-		if (news.length > 0) {
-			console.log(`Используем кэшированные новости. Страница ${currentPage}: `, news);
-			return;
+	const fetchCategories = async () => {
+		try {
+			const data = await getCategories(controller.signal)
+			if (data.status !== 'ok') throw new Error('Ошибка загрузки данных с сервера')
+			const categoriesData = data.categories;
+			setCategories(["All", ...categoriesData])
+			console.log('Используем эндпоинт API_categories: ', categories);
+		} catch (error) {
+			if (error.name === 'CanceledError') return;
+			console.error(error);
 		}
+	}
+	
 
-		// fetchNews(currentPage)
+	useEffect(() => {
+		// if (news.length > 0) {
+		// 	console.log(`Используем кэшированные новости. Страница ${currentPage}: `, news);
+		// 	return;
+		// }
+
+		fetchNews(currentPage)
 		return () => controller.abort()
-	}, [currentPage])
+	}, [currentPage, selectedCategory])
+
+	useEffect(() => {
+		// if (categories.length > 0) {
+		// 	console.log(`Используем кэшированные категории: `, categories);
+		// 	return;
+		// }
+
+		fetchCategories()
+		return () => controller.abort()
+	}, [])
 
 	const handleNextPage = () => {
 		if (currentPage < totalPages) {
@@ -62,6 +94,8 @@ const Main = () => {
 
 	return (
 		<main className={styles.main}>
+			<Categories categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}/>
+
 			{news.length > 0 && !isLoading ? (
 				<NewsBanner item={news[0]} />
 			) : (
