@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import NewsBanner from '../../components/NewsBanner/NewsBanner';
 import styles from './styles.module.css'
 import { getCategories, getNews } from '../../api/apiNews';
-import useLocalStorage from '../../hooks/useLocalStorage';
+// import useLocalStorage from '../../helpers/hooks/useLocalStorage';
 import NewsList from '../../components/NewsList/NewsList';
 import Skeleton from '../../components/Skeleton/Skeleton';
 import Pagination from '../../components/Pagination/Pagination';
 import Categories from '../../components/Categories/Categories';
+import Search from '../../components/Search/Search';
+import { useDebounce } from '../../helpers/hooks/useDebounce';
 
 const Main = () => {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -15,9 +17,12 @@ const Main = () => {
 	// const [categories, setCategories] = useLocalStorage(`categories-data`, []);
 	const [news, setNews] = useState([]);
 	const [categories, setCategories] = useState([]);
+	const [keywords, setKeywords] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const totalPages = 10;
 	const pageSize = 10;
+
+	const debouncedKeywords = useDebounce(keywords, 1500);
 
 	const controller = new AbortController();
 
@@ -29,6 +34,7 @@ const Main = () => {
 					page_number: currentPage,
 					page_size: pageSize,
 					category: selectedCategory === 'All' ? null : selectedCategory,
+					keywords: debouncedKeywords,
 				})
 			if (data.status !== 'ok') throw new Error('Ошибка загрузки данных с сервера')
 			const newsData = data.news;
@@ -62,9 +68,9 @@ const Main = () => {
 		// 	return;
 		// }
 
-		fetchNews(currentPage)
+		// fetchNews(currentPage)
 		return () => controller.abort()
-	}, [currentPage, selectedCategory])
+	}, [currentPage, selectedCategory, debouncedKeywords])
 
 	useEffect(() => {
 		// if (categories.length > 0) {
@@ -72,7 +78,7 @@ const Main = () => {
 		// 	return;
 		// }
 
-		fetchCategories()
+		// fetchCategories()
 		return () => controller.abort()
 	}, [])
 
@@ -95,6 +101,8 @@ const Main = () => {
 	return (
 		<main className={styles.main}>
 			<Categories categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}/>
+
+			<Search keywords={keywords} setKeywords={setKeywords} />
 
 			{news.length > 0 && !isLoading ? (
 				<NewsBanner item={news[0]} />

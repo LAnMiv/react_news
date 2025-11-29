@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import cacheLocalStorage from "../helpers/cacheLocalStorage";
+import cacheLocalStorage from "../cacheLocalStorage";
 
 export default function useLocalStorage(key, initialValue = []) {
 	const [value, setValue] = useState(() =>
