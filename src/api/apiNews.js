@@ -34,6 +34,26 @@ export const getNews = async (
   }
 };
 
+export const getLatestNews = async (signal) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/latest-news`, {
+      params: {
+        apiKey: API_KEY,
+      },
+      signal,
+    });
+		console.log(response)
+    return response.data;
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      console.log('Запрос отменён');
+    } else {
+      console.error('Ошибка запроса новостей:', error);
+      throw error;
+    }
+  }
+};
+
 export const getCategories = async (signal) => {
   try {
     const response = await axios.get(`${BASE_URL}/available/categories`, {
