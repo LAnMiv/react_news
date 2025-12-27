@@ -14,7 +14,7 @@ export const useFetch = (fetchFunction, params) => {
 			try {
 				setIsLoading(true)
 				// Разблокировать, чтобы запросы к API отправлялись
-				const result = await fetchFunction(controller.signal, params)
+				// const result = await fetchFunction(controller.signal, params)
 				setData(result)
 			} catch (error) {
 				setError(error)

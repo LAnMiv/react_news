@@ -4,4 +4,6 @@
 	gap: 12px;
 	width: 100%;
 	box-sizing: border-box;
+	max-height: 1200;
+	overflow-y: auto;
 }
